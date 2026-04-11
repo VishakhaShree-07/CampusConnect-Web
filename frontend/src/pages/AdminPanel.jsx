@@ -1,0 +1,226 @@
+import { useContext, useState, useEffect } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+export default function AdminPanel() {
+    const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [events, setEvents] = useState([]);
+    
+    // Form state
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [date, setDate] = useState('');
+    const [location, setLocation] = useState('');
+    const [type, setType] = useState('Workshop');
+    const [imageUrl, setImageUrl] = useState('');
+    const [showForm, setShowForm] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const fetchEvents = async () => {
+        try {
+            const { data } = await axios.get('http://localhost:5000/api/events');
+            setEvents(data);
+        } catch (error) {
+            console.error("Failed to fetch events", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    const handleCreateEvent = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            await axios.post('http://localhost:5000/api/events', { title, description, date, location, type, capacity, imageUrl }, config);
+            setShowForm(false);
+            setTitle(''); setDescription(''); setDate(''); setLocation(''); setImageUrl('');
+            fetchEvents();
+        } catch (error) {
+            console.error(error);
+            alert("Error creating event");
+        }
+        setLoading(false);
+    };
+
+    const handleDelete = async (id) => {
+        if(window.confirm("Are you sure you want to delete this event?")) {
+            try {
+                const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                await axios.delete(`http://localhost:5000/api/events/${id}`, config);
+                fetchEvents();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
+    return (
+        <main style={{ backgroundColor: '#f1f5f9', minHeight: '100vh', paddingBottom: '3rem' }}>
+            <style>{`
+                @media (max-width: 950px) {
+                    .admin-grid { grid-template-columns: 1fr !important; }
+                    .admin-header { padding: 3rem 1.5rem 5rem !important; }
+                    .admin-header h1 { font-size: 2rem !important; }
+                }
+                .input-field {
+                    width: 100%; padding: 0.8rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; transition: border-color 0.2s; font-size: 0.95rem; box-sizing: border-box;
+                }
+                .input-field:focus { border-color: #4f46e5; }
+                .form-label { display: block; fontSize: 0.85rem; fontWeight: 600; color: #64748b; marginBottom: 0.5rem; }
+            `}</style>
+
+            {/* Top Banner Gradient */}
+            <div className="admin-header" style={{ background: 'linear-gradient(135deg, #312e81 0%, #4f46e5 50%, #ec4899 100%)', color: 'white', padding: '4rem 2rem 6rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', zIndex: 2, maxWidth: '1000px', margin: '0 auto', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                            <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: 800 }}>Admin Dashboard</h1>
+                            <p style={{ margin: 0, opacity: 0.9, fontSize: '1.1rem' }}>Welcome back, {user?.name}</p>
+                        </div>
+                        <button onClick={handleLogout} style={{ padding: '0.75rem 1.5rem', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.3s' }}>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ padding: '0 1.5rem', maxWidth: '1200px', margin: '-2.5rem auto 0', position: 'relative', zIndex: 10 }}>
+                <div className="admin-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 2.5fr', gap: '1.5rem' }}>
+                    
+                    {/* Left Column: Actions */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                            <h3 style={{ color: '#1e293b', marginBottom: '1.25rem', fontSize: '1.15rem', fontWeight: 700 }}>Management</h3>
+                            
+                            <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                <button onClick={() => setShowForm(!showForm)} style={{ padding: '0.85rem 1rem', background: showForm ? '#f8fafc' : 'linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%)', color: showForm ? '#64748b' : '#4338ca', border: showForm ? '1px solid #cbd5e1' : 'none', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', fontWeight: 600, display: 'flex', alignItems: 'center', transition: 'all 0.2s', boxShadow: showForm ? 'none' : '0 4px 6px -1px rgba(79, 70, 229, 0.1)' }}>
+                                    <span style={{ fontSize: '1.2rem', marginRight: '0.75rem' }}>{showForm ? '❌' : '✨'}</span>
+                                    {showForm ? 'Cancel Creation' : 'Create New Event'}
+                                </button>
+                                <button style={{ padding: '0.85rem 1rem', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '1.2rem', marginRight: '0.75rem' }}>👥</span> Manage Users
+                                </button>
+                                <button style={{ padding: '0.85rem 1rem', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '1.2rem', marginRight: '0.75rem' }}>📊</span> Reports
+                                </button>
+                            </div>
+                        </div>
+
+                        {showForm && (
+                            <div style={{ background: '#fff', padding: '1.75rem', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', border: '1px solid #e0e7ff' }}>
+                                <h3 style={{ color: '#1e293b', marginBottom: '1.25rem', fontSize: '1.1rem' }}>Event Details</h3>
+                                <form onSubmit={handleCreateEvent} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label className="form-label">Event Title</label>
+                                        <input type="text" placeholder="e.g. CodeFest 2026" className="input-field" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Description</label>
+                                        <textarea placeholder="Describe the event..." className="input-field" value={description} onChange={(e) => setDescription(e.target.value)} required style={{ minHeight: '80px' }}></textarea>
+                                    </div>
+                                    <div>
+                                        <label className="form-label">Image URL</label>
+                                        <input type="text" placeholder="https://unsplash.com/..." className="input-field" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                        <div>
+                                            <label className="form-label">Date</label>
+                                            <input type="date" className="input-field" value={date} onChange={(e) => setDate(e.target.value)} required />
+                                        </div>
+                                        <div>
+                                            <label className="form-label">Location</label>
+                                            <input type="text" placeholder="Auditorium" className="input-field" value={location} onChange={(e) => setLocation(e.target.value)} required />
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '0.75rem' }}>
+                                        <div>
+                                            <label className="form-label">Type</label>
+                                            <select className="input-field" value={type} onChange={(e) => setType(e.target.value)} style={{ backgroundColor: 'white' }}>
+                                                <option>Workshop</option>
+                                                <option>Hackathon</option>
+                                                <option>Seminar</option>
+                                                <option>Cultural</option>
+                                                <option>Competition</option>
+                                                <option>Other</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="form-label">Capacity</label>
+                                            <input type="number" placeholder="100" className="input-field" value={capacity} onChange={(e) => setCapacity(e.target.value)} required />
+                                        </div>
+                                    </div>
+                                    <button type="submit" disabled={loading} style={{ marginTop: '0.5rem', padding: '0.85rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)', transition: 'all 0.2s' }}>
+                                        {loading ? 'Processing...' : 'Publish Event'}
+                                    </button>
+                                </form>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right Column: Data Table */}
+                    <div style={{ background: '#fff', padding: '1.75rem', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                        <h3 style={{ color: '#1e293b', marginBottom: '1.25rem', fontSize: '1.2rem', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            All Broadcasted Events
+                            <span style={{ fontSize: '0.75rem', background: '#e0e7ff', color: '#4338ca', padding: '0.25rem 0.75rem', borderRadius: '20px', fontWeight: 700 }}>{events.length}</span>
+                        </h3>
+                        
+                        {events.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '3rem 0', color: '#94a3b8' }}>
+                                <span style={{ fontSize: '2.5rem', display: 'block', marginBottom: '0.75rem' }}>📂</span>
+                                No events found.
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', whiteSpace: 'nowrap' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                            <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Title</th>
+                                            <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Date</th>
+                                            <th style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>Type</th>
+                                            <th style={{ padding: '0.75rem 1rem', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {events.map((event, index) => (
+                                            <tr key={event._id} style={{ borderTop: '1px solid #f1f5f9', background: index % 2 === 0 ? 'white' : '#fcfcfd', transition: 'background 0.2s', fontSize: '0.9rem' }}>
+                                                <td style={{ padding: '0.75rem 1rem', color: '#0f172a', fontWeight: 600 }}>
+                                                    {event.title}
+                                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 400 }}>{event.location}</div>
+                                                </td>
+                                                <td style={{ padding: '0.75rem 1rem', color: '#64748b' }}>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric'})}</td>
+                                                <td style={{ padding: '0.75rem 1rem' }}>
+                                                    <span style={{ padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 700, 
+                                                        background: event.type === 'Hackathon' ? '#e0f2fe' : event.type === 'Workshop' ? '#dcfce7' : '#f3e8ff',
+                                                        color: event.type === 'Hackathon' ? '#0284c7' : event.type === 'Workshop' ? '#16a34a' : '#9333ea',
+                                                        textTransform: 'uppercase'
+                                                    }}>
+                                                        {event.type}
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
+                                                    <button onClick={() => handleDelete(event._id)} style={{ background: 'transparent', color: '#ef4444', border: '1px solid transparent', padding: '0.3rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e)=>e.target.style.background='#fee2e2'} onMouseLeave={(e)=>e.target.style.background='transparent'}>
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </main>
+    );
+}

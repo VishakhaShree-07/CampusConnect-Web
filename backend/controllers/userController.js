@@ -13,7 +13,24 @@ const verifyAdminAndGetUsers = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
 
-        const isMatch = await bcrypt.compare(password, req.user.password);
+        // Debugging logs
+        const identifier = req.user.email || req.user.mobile;
+        console.log('DEBUG: Verifying Admin - Identifier:', identifier);
+        
+        const adminUser = await User.findOne({ 
+            $or: [{ email: identifier }, { mobile: identifier }] 
+        }).select('+password');
+        
+        console.log('DEBUG: Admin User found:', !!adminUser);
+        if (adminUser) {
+            console.log('DEBUG: Admin User has password field:', !!adminUser.password);
+        }
+
+        if (!adminUser || !adminUser.password) {
+            return res.status(404).json({ message: 'Authentication data not found in DB' });
+        }
+
+        const isMatch = await bcrypt.compare(password, adminUser.password);
         
         if (!isMatch) {
             return res.status(401).json({ message: 'Incorrect admin password' });

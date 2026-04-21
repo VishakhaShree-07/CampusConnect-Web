@@ -27,8 +27,8 @@ const createEvent = async (req, res) => {
 
         // Broadcast email to all users silently
         try {
-            const users = await User.find({}, 'email name');
-            const emailPromises = users.map(user => {
+            const users = await User.find({ email: { $exists: true, $ne: null } }, 'email name');
+            const emailPromises = users.filter(user => user.email).map(user => {
                 const message = `Hello ${user.name},\n\nA new event "${title}" has been added to CampusConnect! It is scheduled for ${new Date(date).toLocaleDateString()} at ${location}.\n\nCheck it out and register on the platform.`;
                 const htmlStr = `<p>Hello ${user.name},</p><p>A new event "<strong>${title}</strong>" has been added to CampusConnect!</p><ul><li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li><li><strong>Location:</strong> ${location}</li></ul><p>Check it out and register on the platform!</p>`;
                 

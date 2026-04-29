@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -8,8 +9,8 @@ const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/campusconnect')
-.then(() => console.log('MongoDB Connected'))
-.catch(err => console.log('MongoDB Connection Error:', err));
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log('MongoDB Connection Error:', err));
 
 
 app.use(cors());
@@ -25,6 +26,10 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Backend is running' });
+});
+
+app.get('/api/debug-env', (req, res) => {
+    res.json({ emailUser: process.env.EMAIL_USER || 'NOT_SET', hasPass: !!process.env.EMAIL_PASS });
 });
 
 app.listen(PORT, () => {

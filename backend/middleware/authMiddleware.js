@@ -10,7 +10,11 @@ const protect = async (req, res, next) => {
             // Decode token, using a default secret if not provided in env for simplicity
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'campusconnectsecretkey123');
             
-            req.user = await User.findById(decoded.id).select('-password');
+            const user = await User.findById(decoded.id).select('-password');
+            if (!user) {
+                return res.status(401).json({ message: 'User no longer exists, please log in again' });
+            }
+            req.user = user;
             next();
         } catch (error) {
             console.error('Auth Middleware Error:', error);

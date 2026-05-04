@@ -205,8 +205,8 @@ const events = [
 
 const seedEvents = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/campusconnect');
-        console.log('Connected to MongoDB for seeding...');
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log('Connected to Atlas for seeding...');
 
         // Clear existing events for a clean slate
         await Event.deleteMany({});

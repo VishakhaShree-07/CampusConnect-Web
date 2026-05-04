@@ -28,6 +28,7 @@ export default function AdminPanel() {
     const [adminPassInput, setAdminPassInput] = useState('');
     const [passError, setPassError] = useState('');
     const [passLoading, setPassLoading] = useState(false);
+    const [viewingUsersFor, setViewingUsersFor] = useState(null);
 
     const toggleUserMgmt = () => {
         setShowUserMgmt(!showUserMgmt);
@@ -379,8 +380,9 @@ export default function AdminPanel() {
                                                                 <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{event.type} • {new Date(event.date).toLocaleDateString()}</div>
                                                             </div>
                                                             <div style={{ textAlign: 'right' }}>
-                                                                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: isFull ? '#ef4444' : '#4f46e5' }}>
+                                                                <div onClick={() => setViewingUsersFor(viewingUsersFor === event._id ? null : event._id)} style={{ fontSize: '1.1rem', fontWeight: 800, color: isFull ? '#ef4444' : '#4f46e5', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                                                                     {regCount} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#94a3b8' }}>/ {cap}</span>
+                                                                    <span style={{ fontSize: '0.7rem' }}>{viewingUsersFor === event._id ? '▲' : '▼'}</span>
                                                                 </div>
                                                                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: isFull ? '#ef4444' : '#10b981' }}>
                                                                     {isFull ? '🔥 FULL' : `${percent}% FILLED`}
@@ -397,6 +399,23 @@ export default function AdminPanel() {
                                                                 transition: 'width 1s ease-in-out'
                                                             }}></div>
                                                         </div>
+                                                        {viewingUsersFor === event._id && (
+                                                            <div style={{ marginTop: '1rem', padding: '1rem', background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', animation: 'fadeIn 0.3s ease' }}>
+                                                                <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '0.85rem', color: '#1e293b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Registered Students</h4>
+                                                                {event.registeredStudents?.length > 0 ? (
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                                        {event.registeredStudents.map((std, idx) => (
+                                                                            <div key={std._id || idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#475569', paddingBottom: '0.4rem', borderBottom: idx === event.registeredStudents.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                                                                                <span style={{ fontWeight: 600 }}>{std.name}</span>
+                                                                                <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{std.email || std.mobile}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div style={{ color: '#94a3b8', fontSize: '0.9rem', fontStyle: 'italic' }}>No students registered yet.</div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}

@@ -9,8 +9,8 @@ const verifyAdminAndGetUsers = async (req, res) => {
             return res.status(400).json({ message: 'Please enter your admin password' });
         }
 
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized as an admin' });
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized as an admin, please login again' });
         }
 
         // Debugging logs

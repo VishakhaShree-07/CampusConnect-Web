@@ -8,8 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/campusconnect')
-    .then(() => console.log('MongoDB Connected'))
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB Connected to Atlas'))
     .catch(err => console.log('MongoDB Connection Error:', err));
 
 
